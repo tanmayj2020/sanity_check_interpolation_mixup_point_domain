@@ -7,13 +7,18 @@ import torch.nn as nn
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
+def bce_loss(x , y):
+    eps = 1e-6
+    return -torch.mean(y*torch.log(x + eps) + (1-y)*torch.log(1-x + eps))
+
+
 class Sketch_Classification(nn.Module):
     def __init__(self, hp):
         super(Sketch_Classification, self).__init__()
         self.Network = eval(hp.backbone_name + "_Network(hp)")
         self.train_params = self.parameters()
         self.optimizer = optim.Adam(self.train_params, hp.learning_rate)
-        self.loss = nn.CrossEntropyLoss()
+        self.loss = bce_loss
         self.hp = hp
 
     def train_model(self, batch):

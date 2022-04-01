@@ -10,6 +10,7 @@ random.seed(9001)
 import torchvision.transforms.functional as F
 from my_rasterize import rasterize_Sketch
 import numpy as np
+from utils import strategy3 , getAssignment , interpolation
 
 class Dataset_TUBerlin(data.Dataset):
     def __init__(self, hp, mode):
@@ -67,9 +68,25 @@ class Dataset_TUBerlin(data.Dataset):
             sketch_path = self.Train_Sketch[item]
 
             vector_x = self.Coordinate[sketch_path]
-            #sketch_img = rasterize_Sketch(vector_x, self.hp.channels)
-            # sketch_img = torch.from_numpy(sketch_img)
+            
+            label = torch.zeros(len(self.name2num))
+            label[self.name2num[sketch_path.split("/")[0]]] = 1
+            
+            # Perform mixup on only 5 images
+            if item > 0 and item%5==0:
+                mixup_idx = random.randint(0 , len(self.Train_Sketch) - 1)
+                mixup_label = torch.zeros(len(self.name2num))
+                sketch_path_mixup = self.Train_Sketch[mixup_idx]
+                mixup_label[self.name2num[sketch_path_mixup.split("/")[0]]] = 1
+                vector_mixup = self.Coordinate[sketch_path_mixup]
+                p1 , p2 = strategy3(vector_x , vector_mixup)
+                ans_dict = getAssignment(p1 , p2)
+                alpha  = 0.2
+                lam = np.random.beta(alpha , alpha)
+                vector_x = interpolation(p1 , p2 ,lam , ans_dict)
+                label = lam * label + (1-lam) * mixup_label
             sketch_img = rasterize_Sketch(vector_x)
+            
             sketch_img = Image.fromarray(sketch_img).convert('RGB')
 
             n_flip = random.random()
@@ -78,11 +95,10 @@ class Dataset_TUBerlin(data.Dataset):
 
 
             sketch_img = self.train_transform(sketch_img)
-            # sketch_img = sketch_img.float()
 
 
             sample = {'sketch_img': sketch_img,
-                       'sketch_label': self.name2num[sketch_path.split('/')[0]]}
+                       'sketch_label': label}
 
 
         elif self.mode == 'Test':

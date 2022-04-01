@@ -53,11 +53,5 @@ class Resnet_Network(nn.Module):
         x = self.pool_method(x)
         features = torch.flatten(x, 1)
         out = self.classifier(features)
-        return out
-
-    # def forward(self, input, bb_box=None):
-    #     x = self.features(input)
-    #     x = self.pool_method(x)
-    #     x = torch.flatten(x, 1)
-    #     x = self.classifier(x)
-    #     return x
+        return nn.Sigmoid()(out)
+        
