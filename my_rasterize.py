@@ -13,12 +13,9 @@ def preprocess(sketch_points, side=800):
 def rasterize_Sketch(sketch_points):
     p1 = preprocess(sketch_points , 800)
     raster_image = np.zeros((int(800), int(800)), dtype=np.float32)
-    print("_________________________________________________________")
-    print(p1)
-    print("_________________________________________________________")
     for coordinate in p1:
         if (coordinate[0] > 0 and coordinate[1] > 0) and (coordinate[0] < 800 and coordinate[1] < 800):
-                raster_image[coordinate[1], coordinate[0]] = 255.0
+                raster_image[int(coordinate[1]), int(coordinate[0])] = 255.0
     raster_image = nd.binary_dilation(raster_image) * 255.0
     
     return raster_image

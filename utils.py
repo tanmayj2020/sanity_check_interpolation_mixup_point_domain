@@ -61,7 +61,7 @@ def getAssignment(p1 , p2):
 
 
 
-def interpolation(p1 , p2 , label1 , label2 , lmbda , ans_dict):
+def interpolation(p1 , p2 , lmbda , ans_dict):
     assert 0 <= lmbda <= 1 , "lambda out of bounds"
     n = len(p1)
     if lmbda == 0.0:
