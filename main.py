@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
         for i_batch, batch in enumerate(dataloader_Train):
             loss = model.train_model(batch)
-            print(f"Epoch - {epoch} , Batch - {i_batch}")
+            print(f"Epoch - {epoch} , Batch - {i_batch} , Loss - {loss}")
 
         if epoch % hp.print_freq_iter == 0:
             print(

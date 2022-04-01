@@ -86,7 +86,7 @@ class Dataset_TUBerlin(data.Dataset):
                 vector_x = interpolation(p1 , p2 ,lam , ans_dict)
                 label = lam * label + (1-lam) * mixup_label
             sketch_img = rasterize_Sketch(vector_x)
-            
+
             sketch_img = Image.fromarray(sketch_img).convert('RGB')
 
             n_flip = random.random()
@@ -134,7 +134,7 @@ def collate_self(batch):
         batch_mod['sketch_label'].append(i_batch['sketch_label'])
 
     batch_mod['sketch_img'] = torch.stack(batch_mod['sketch_img'], dim=0)
-    batch_mod['sketch_label'] = torch.tensor(batch_mod['sketch_label'])
+    batch_mod['sketch_label'] = torch.stack(batch_mod['sketch_label'] , dim =0)
 
     return batch_mod
 
