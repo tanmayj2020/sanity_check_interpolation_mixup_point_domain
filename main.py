@@ -26,7 +26,7 @@ if __name__ == "__main__":
         help="VGG / InceptionV3/ Resnet",
     )
     parser.add_argument("--batchsize", type=int, default=16)
-    parser.add_argument("--nThreads", type=int, default=8)
+    parser.add_argument("--nThreads", type=int, default=1)
     parser.add_argument("--learning_rate", type=float, default=0.0001)
     parser.add_argument("--max_epoch", type=int, default=100)
     parser.add_argument("--eval_freq_iter", type=int, default=1)

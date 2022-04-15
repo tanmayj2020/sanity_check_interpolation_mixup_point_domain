@@ -11,6 +11,7 @@ def preprocess(sketch_points, side=800):
     return sketch_points
 
 def rasterize_Sketch(sketch_points):
+    sketch_points = np.array(sketch_points)
     p1 = preprocess(sketch_points , 800)
     raster_image = np.zeros((int(800), int(800)), dtype=np.float32)
     for coordinate in p1:

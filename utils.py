@@ -53,7 +53,6 @@ def getAssignment(p1 , p2):
         for i in range(num_points):
             for j in range(num_points):
                 if x[i , j].solution_value() > 0.5:
-                    print(p1[i] , " assigned to " , p2[j])
                     ans_dict[i] = j
         return ans_dict
     else:
