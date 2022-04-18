@@ -138,6 +138,21 @@ def collate_self(batch):
 
     return batch_mod
 
+def collate_self_test(batch):
+    batch_mod = {'sketch_img': [],
+                 'sketch_label': [],
+                 }
+
+    for i_batch in batch:
+        batch_mod['sketch_img'].append(i_batch['sketch_img'])
+        batch_mod['sketch_label'].append(i_batch['sketch_label'])
+
+    batch_mod['sketch_img'] = torch.stack(batch_mod['sketch_img'], dim=0)
+    batch_mod['sketch_label'] = torch.tensor(batch_mod['sketch_label'])
+
+    return batch_mod
+
+
 
 def get_dataloader(hp):
 
@@ -153,7 +168,7 @@ def get_dataloader(hp):
                                          num_workers=int(hp.nThreads), collate_fn=collate_self)
 
     dataloader_Test = data.DataLoader(dataset_Test, batch_size=hp.batchsize, shuffle=False,
-                                         num_workers=int(hp.nThreads), collate_fn=collate_self)
+                                         num_workers=int(hp.nThreads), collate_fn=collate_self_test)
 
     return dataloader_Train, dataloader_Test
 

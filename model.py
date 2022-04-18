@@ -19,6 +19,7 @@ class Sketch_Classification(nn.Module):
         self.train_params = self.parameters()
         self.optimizer = optim.Adam(self.train_params, hp.learning_rate)
         self.loss = bce_loss
+        self.test_loss = nn.CrossEntropyLoss()
         self.hp = hp
 
     def train_model(self, batch):
@@ -38,7 +39,7 @@ class Sketch_Classification(nn.Module):
         for i_batch, batch in enumerate(dataloader_Test):
 
             output = self.Network(batch["sketch_img"].to(device))
-            test_loss += self.loss(output, batch["sketch_label"].to(device)).item()
+            test_loss += self.test_loss(output, batch["sketch_label"].to(device)).item()
             prediction = output.argmax(dim=1, keepdim=True).to("cpu")
             correct += prediction.eq(batch["sketch_label"].view_as(prediction)).sum().item()
 
