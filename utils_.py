@@ -70,13 +70,11 @@ def interpolation(p1 , p2 , lmbda , ans_dict):
     intermediate_point_list = []
     for i in range(n):
         j = ans_dict[i]
-        point1 = p1[i]
-        point2 = p2[j]
-        point1 = np.array(point1)
-        point2 = np.array(point2)
-
+        point1 = np.array(p1[i])
+        point2 = np.array(p2[j])
+        
         intermediate_point = (lmbda) * point1 + (1-lmbda) * point2
-        intermediate_point_list.append(intermediate_point.tolist())
+        intermediate_point_list.append(intermediate_point)
     intermediate_point_list = np.array(intermediate_point_list)
     return intermediate_point_list
 
@@ -105,17 +103,13 @@ def preprocess(sketch_points, side=800):
 
 
 
-def strategy3(p1 , p2):
+def strategy3(p1):
     p1 = preprocess(p1 , 800)
-    p2 = preprocess(p2 , 800)
+    
     p1 = mydrawPNG(p1)
-    p2 = mydrawPNG(p2)
 
     random.shuffle(p1)
     point_1_list = p1[:500]
 
-    random.shuffle(p2)
-    point_2_list = p2[:500]
 
-    return point_1_list , point_2_list
-
+    return point_1_list 

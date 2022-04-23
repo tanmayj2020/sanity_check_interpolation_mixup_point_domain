@@ -1,4 +1,5 @@
 import os
+from matplotlib import image
 import torch
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 import pickle
@@ -10,7 +11,7 @@ random.seed(9001)
 import torchvision.transforms.functional as F
 from my_rasterize import rasterize_Sketch
 import numpy as np
-from utils import strategy3 , getAssignment , interpolation
+from utils_ import strategy3 , getAssignment , interpolation
 
 class Dataset_TUBerlin(data.Dataset):
     def __init__(self, hp, mode):
@@ -68,35 +69,31 @@ class Dataset_TUBerlin(data.Dataset):
             sketch_path = self.Train_Sketch[item]
 
             vector_x = self.Coordinate[sketch_path]
+            vector_x_image = strategy3(vector_x)
             
             label = torch.zeros(len(self.name2num))
             label[self.name2num[sketch_path.split("/")[0]]] = 1
+            if item%5!=0:
+                sketch_img = rasterize_Sketch(vector_x_image)
+                sketch_img = Image.fromarray(sketch_img).convert('RGB')
+                sketch_img = self.train_transform(sketch_img)
             
             # Perform mixup on only 5 images
-            if item > 0 and item%5==0:
+            if item%5==0:
                 mixup_idx = random.randint(0 , len(self.Train_Sketch) - 1)
                 mixup_label = torch.zeros(len(self.name2num))
                 sketch_path_mixup = self.Train_Sketch[mixup_idx]
                 mixup_label[self.name2num[sketch_path_mixup.split("/")[0]]] = 1
                 vector_mixup = self.Coordinate[sketch_path_mixup]
-                p1 , p2 = strategy3(vector_x , vector_mixup)
-                ans_dict = getAssignment(p1 , p2)
+                vector_mixup_image = strategy3(vector_mixup)
+                ans_dict = getAssignment(vector_x_image , vector_mixup_image)
                 alpha  = 0.2
                 lam = np.random.beta(alpha , alpha)
-                vector_x = interpolation(p1 , p2 ,lam , ans_dict)
+                vector_interpolated = interpolation(vector_x_image ,vector_mixup_image ,lam , ans_dict)
                 label = lam * label + (1-lam) * mixup_label
-            sketch_img = rasterize_Sketch(vector_x)
-
-            sketch_img = Image.fromarray(sketch_img).convert('RGB')
-
-            n_flip = random.random()
-            if n_flip > 0.5:
-                sketch_img = F.hflip(sketch_img)
-
-
-            sketch_img = self.train_transform(sketch_img)
-
-
+                sketch_img = rasterize_Sketch(vector_interpolated)
+                sketch_img = Image.fromarray(sketch_img).convert('RGB')
+                sketch_img = self.train_transform(sketch_img)          
             sample = {'sketch_img': sketch_img,
                        'sketch_label': label}
 
@@ -104,16 +101,16 @@ class Dataset_TUBerlin(data.Dataset):
         elif self.mode == 'Test':
 
             sketch_path = self.Test_Sketch[item]
+            label = torch.zeros(len(self.name2num))
+            label[self.name2num[sketch_path.split("/")[0]]] = 1
             vector_x = self.Coordinate[sketch_path]
-
+            vector_x = strategy3(vector_x)
             sketch_img = rasterize_Sketch(vector_x)
-            # sketch_img = torch.from_numpy(sketch_img)
             sketch_img = Image.fromarray(sketch_img).convert('RGB')
             sketch_img = self.test_transform(sketch_img)
-            # sketch_img = sketch_img.float()
 
             sample = {'sketch_img': sketch_img,
-                     'sketch_label': self.name2num[sketch_path.split('/')[0]]}
+                     'sketch_label': label}
 
         return sample
 
@@ -138,20 +135,6 @@ def collate_self(batch):
 
     return batch_mod
 
-def collate_self_test(batch):
-    batch_mod = {'sketch_img': [],
-                 'sketch_label': [],
-                 }
-
-    for i_batch in batch:
-        batch_mod['sketch_img'].append(i_batch['sketch_img'])
-        batch_mod['sketch_label'].append(i_batch['sketch_label'])
-
-    batch_mod['sketch_img'] = torch.stack(batch_mod['sketch_img'], dim=0)
-    batch_mod['sketch_label'] = torch.tensor(batch_mod['sketch_label'])
-
-    return batch_mod
-
 
 
 def get_dataloader(hp):
@@ -168,7 +151,7 @@ def get_dataloader(hp):
                                          num_workers=int(hp.nThreads), collate_fn=collate_self)
 
     dataloader_Test = data.DataLoader(dataset_Test, batch_size=hp.batchsize, shuffle=False,
-                                         num_workers=int(hp.nThreads), collate_fn=collate_self_test)
+                                         num_workers=int(hp.nThreads), collate_fn=collate_self)
 
     return dataloader_Train, dataloader_Test
 
