@@ -39,7 +39,7 @@ class Sketch_Classification(nn.Module):
 
             output = self.Network(batch["sketch_img"].to(device))
             test_loss += self.loss(output, batch["sketch_label"].to(device)).item()
-            correct += (torch.argmax(output, dim=1) == torch.argmax(batch["sketch_label"], dim=1)).float().sum()
+            correct += (torch.argmax(output, dim=1) == torch.argmax(batch["sketch_label"].to(device), dim=1)).float().sum()
 
         test_loss /= len(dataloader_Test.dataset)
         accuracy = 100.0 * correct / len(dataloader_Test.dataset)
